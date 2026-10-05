@@ -1,0 +1,7 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+/equipamentos.db
+.env
+.DS_Store
