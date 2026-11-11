@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block titulo %}AtivoTI | Empréstimos{% endblock %}
+{% block conteudo %}
+  <section class="cabecalho-lista">
+    <div><p class="sobretitulo">MOVIMENTAÇÃO DE ATIVOS</p><h1>Empréstimos</h1><p class="texto-ajuda">Registre entregas e acompanhe devoluções em uma tela própria.</p></div>
+  </section>
+
+  {% if erro %}<section class="cartao estado estado-erro" role="alert"><h2>Não foi possível carregar os empréstimos</h2><p>{{ erro }}</p><a class="botao secundario" href="{{ url_for('emprestimos') }}">Tentar novamente</a></section>
+  {% else %}
+    {% set equipamentos_disponiveis = equipamentos|selectattr('status', 'equalto', 'Em estoque')|list %}
+    {% if pode_editar %}
+      <section class="cartao formulario-cartao formulario-modulo">
+        <p class="sobretitulo">NOVA MOVIMENTAÇÃO</p><h2>Entregar equipamento</h2><p class="texto-ajuda">Escolha um item disponível e o funcionário responsável.</p>
+        {% if not equipamentos_disponiveis %}<p class="aviso aviso-inline" role="status">Não há equipamentos em estoque para entregar.</p>{% elif not funcionarios %}<p class="aviso aviso-inline" role="status">Cadastre um funcionário antes de registrar a entrega.</p>{% endif %}
+        <form method="post" action="{{ url_for('criar_alocacao') }}">
+          <div class="campos campos-tres">
+            <label>Equipamento *<select name="equipamento_id" required><option value="">Selecione</option>{% for item in equipamentos if item.status == 'Em estoque' %}<option value="{{ item.id }}">{{ item.patrimonio or 'Sem patrimônio' }} · {{ item.nome }}</option>{% endfor %}</select></label>
+            <label>Funcionário *<select name="funcionario_id" required><option value="">Selecione</option>{% for pessoa in funcionarios %}<option value="{{ pessoa.id }}">{{ pessoa.nome }} · {{ pessoa.matricula }}</option>{% endfor %}</select></label>
+            <label>Tipo<select name="situacao"><option>Em uso</option><option>Emprestado</option></select></label>
+            <label class="campo-largo">Observação<input name="observacao" maxlength="500" placeholder="Opcional"></label>
+          </div>
+          <div class="botoes-formulario"><button class="botao primario" type="submit" {% if not equipamentos_disponiveis or not funcionarios %}disabled{% endif %}>Registrar entrega</button></div>
+        </form>
+      </section>
+    {% endif %}
+
+    <section class="cartao tabela-controle bloco-pagina">
+      <div class="barra-tabela"><div><h2>Entregas e devoluções</h2><p>{{ alocacoes|length }} registro{% if alocacoes|length != 1 %}s{% endif %} · mais recentes primeiro</p></div></div>
+      <div class="rolagem tabela-desktop"><table><thead><tr><th>Equipamento</th><th>Funcionário</th><th>Setor</th><th>Tipo</th><th>Entregue</th><th>Devolvido</th><th>Ação</th></tr></thead><tbody>
+        {% for item in alocacoes %}<tr><td><strong>{{ item.nome_equipamento }}</strong><small>{{ item.patrimonio }}</small></td><td><a class="link" href="{{ url_for('consulta_funcionarios', q=item.nome_funcionario, funcionario_id=item.funcionario_id) }}">{{ item.nome_funcionario }}</a><small>{{ item.matricula_funcionario }}</small></td><td>{{ item.setor_funcionario }}</td><td>{{ item.situacao }}</td><td>{{ item.data_alocacao[:10] }}</td><td>{{ item.data_devolucao[:10] if item.data_devolucao else 'Em aberto' }}</td><td>{% if pode_editar and not item.data_devolucao %}<form action="{{ url_for('devolver_equipamento', alocacao_id=item.id) }}" method="post"><button class="botao pequeno secundario" type="submit">Registrar devolução</button></form>{% else %}—{% endif %}</td></tr>
+        {% else %}<tr><td colspan="7" class="celula-vazia">Nenhuma entrega registrada.</td></tr>{% endfor %}
+      </tbody></table></div>
+      <div class="lista-registros-movel">{% for item in alocacoes %}<article class="registro-movel"><div class="cabecalho-registro"><strong>{{ item.nome_equipamento }}</strong><span class="status" data-status="{{ item.situacao if not item.data_devolucao else 'Em estoque' }}">{{ 'Em aberto' if not item.data_devolucao else 'Devolvido' }}</span></div><p class="subtitulo-registro">{{ item.patrimonio }} · {{ item.situacao }}</p><dl><div><dt>Funcionário</dt><dd><a href="{{ url_for('consulta_funcionarios', q=item.nome_funcionario, funcionario_id=item.funcionario_id) }}">{{ item.nome_funcionario }}</a></dd></div><div><dt>Matrícula / setor</dt><dd>{{ item.matricula_funcionario }} · {{ item.setor_funcionario }}</dd></div><div><dt>Entregue</dt><dd>{{ item.data_alocacao[:10] }}</dd></div><div><dt>Devolvido</dt><dd>{{ item.data_devolucao[:10] if item.data_devolucao else 'Em aberto' }}</dd></div></dl>{% if pode_editar and not item.data_devolucao %}<form class="acoes-registro" action="{{ url_for('devolver_equipamento', alocacao_id=item.id) }}" method="post"><button class="botao pequeno secundario" type="submit">Registrar devolução</button></form>{% endif %}</article>{% else %}<p class="vazio-registro">Nenhuma entrega registrada.</p>{% endfor %}</div>
+    </section>
+  {% endif %}
+{% endblock %}

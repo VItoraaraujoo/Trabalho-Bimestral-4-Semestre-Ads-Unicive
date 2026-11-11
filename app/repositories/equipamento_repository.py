@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from ..models import Equipamento
@@ -9,10 +9,10 @@ def obter_por_id(db: Session, equipamento_id: int) -> Equipamento | None:
     return db.get(Equipamento, equipamento_id)
 
 
-def obter_por_patrimonio(
-    db: Session, patrimonio: str, ignorar_id: int | None = None
+def obter_por_numero_serie(
+    db: Session, numero_serie: str, ignorar_id: int | None = None
 ) -> Equipamento | None:
-    query = select(Equipamento).where(Equipamento.patrimonio == patrimonio)
+    query = select(Equipamento).where(Equipamento.numero_serie == numero_serie)
     if ignorar_id is not None:
         query = query.where(Equipamento.id != ignorar_id)
     return db.scalar(query)
@@ -37,8 +37,10 @@ def listar(
 def criar(db: Session, equipamento: Equipamento) -> Equipamento:
     db.add(equipamento)
     try:
+        db.flush()
+        equipamento.patrimonio = f"ATI-{equipamento.id:06d}"
         db.commit()
-    except IntegrityError:
+    except SQLAlchemyError:
         db.rollback()
         raise
     db.refresh(equipamento)
@@ -48,7 +50,7 @@ def criar(db: Session, equipamento: Equipamento) -> Equipamento:
 def atualizar(db: Session, equipamento: Equipamento) -> Equipamento:
     try:
         db.commit()
-    except IntegrityError:
+    except SQLAlchemyError:
         db.rollback()
         raise
     db.refresh(equipamento)
@@ -57,4 +59,8 @@ def atualizar(db: Session, equipamento: Equipamento) -> Equipamento:
 
 def excluir(db: Session, equipamento: Equipamento) -> None:
     db.delete(equipamento)
-    db.commit()
+    try:
+        db.commit()
+    except SQLAlchemyError:
+        db.rollback()
+        raise

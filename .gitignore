@@ -3,5 +3,6 @@ __pycache__/
 .venv/
 venv/
 /equipamentos.db
+/relatorios/
 .env
 .DS_Store

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block titulo %}AtivoTI | Dashboard{% endblock %}
+{% block trilha %}Dashboard{% endblock %}
+{% block conteudo %}
+  <section class="cabecalho-lista">
+    <div>
+      <p class="sobretitulo">VISÃO GERAL</p>
+      <h1>Dashboard</h1>
+      <p class="texto-ajuda">Acompanhe o inventário e acesse as principais rotinas do AtivoTI.</p>
+    </div>
+  </section>
+
+  {% if erro %}
+    <section class="cartao estado estado-erro" role="alert">
+      <span class="icone-vazio icone-erro" aria-hidden="true">!</span>
+      <h2>Não foi possível carregar o resumo</h2>
+      <p>{{ erro }}</p>
+      <a class="botao secundario" href="{{ url_for('dashboard') }}">Tentar novamente</a>
+    </section>
+  {% else %}
+    <section class="grade-indicadores" aria-label="Resumo do inventário">
+      <article class="indicador-cartao"><span class="icone-indicador azul-claro"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span><div><span class="rotulo-indicador">Total de equipamentos</span><strong>{{ resumo.total }}</strong></div></article>
+      <article class="indicador-cartao"><span class="icone-indicador verde-claro"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.2 4.2L19 6.8"/></svg></span><div><span class="rotulo-indicador">Em uso</span><strong>{{ resumo.em_uso }}</strong></div></article>
+      <article class="indicador-cartao"><span class="icone-indicador amarelo-claro"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg></span><div><span class="rotulo-indicador">Em manutenção</span><strong>{{ resumo.manutencao }}</strong></div></article>
+      <article class="indicador-cartao"><span class="icone-indicador vermelho-claro"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9 9l6 6M15 9l-6 6"/></svg></span><div><span class="rotulo-indicador">Indisponíveis</span><strong>{{ resumo.indisponiveis }}</strong></div></article>
+    </section>
+
+    <section class="atalhos-dashboard" aria-label="Ações rápidas">
+      <a class="cartao atalho-dashboard" href="{{ url_for('inicio') }}"><span class="icone-indicador azul-claro"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span><span><strong>Equipamentos</strong><small>Consultar e atualizar o inventário</small></span><svg class="seta-atalho" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>
+      <a class="cartao atalho-dashboard" href="{{ url_for('emprestimos') }}"><span class="icone-indicador verde-claro"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h13M13 3l4 4-4 4M20 17H7m4-4-4 4 4 4"/></svg></span><span><strong>Empréstimos</strong><small>Registrar entregas e devoluções</small></span><svg class="seta-atalho" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>
+      <a class="cartao atalho-dashboard" href="{{ url_for('manutencoes') }}"><span class="icone-indicador amarelo-claro"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.7 6.3 3 3M4 20l5.3-1.2 9.4-9.4a2.1 2.1 0 0 0-3-3l-9.4 9.4z"/></svg></span><span><strong>Manutenções</strong><small>Consultar laudos e reparos</small></span><svg class="seta-atalho" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>
+      <a class="cartao atalho-dashboard" href="{{ url_for('funcionarios') }}"><span class="icone-indicador azul-claro"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 20v-1.5a5.5 5.5 0 0 1 11 0V20M16 5.5a3 3 0 0 1 0 5.8M18 14a4 4 0 0 1 2.5 3.7V20"/></svg></span><span><strong>Funcionários</strong><small>Pesquisar fichas e vínculos</small></span><svg class="seta-atalho" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>
+      <a class="cartao atalho-dashboard" href="{{ url_for('sistemas') }}"><span class="icone-indicador azul-claro"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M8 9h8M8 13h5"/></svg></span><span><strong>Sistemas</strong><small>Ver sistemas vinculados à equipe</small></span><svg class="seta-atalho" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>
+      <a class="cartao atalho-dashboard" href="{{ url_for('relatorio') }}"><span class="icone-indicador azul-claro"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V11h4v8M10 19V5h4v14M16 19v-6h4v6M3 20.5h18"/></svg></span><span><strong>Relatórios</strong><small>Ver a distribuição do patrimônio</small></span><svg class="seta-atalho" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></a>
+    </section>
+
+    <section class="cartao tabela-controle painel-recentes">
+      <div class="barra-tabela"><div><h2>Equipamentos recentes</h2><p>Atualizado a partir da API central</p></div><a class="link" href="{{ url_for('inicio') }}">Ver todos</a></div>
+      {% if equipamentos %}
+        <div class="rolagem tabela-desktop"><table><thead><tr><th>Equipamento</th><th>Patrimônio</th><th>Tipo</th><th>Local</th><th>Status</th></tr></thead><tbody>
+          {% for item in equipamentos %}<tr><td><div class="identidade-equipamento"><span class="icone-equipamento"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span><strong>{{ item.nome }}</strong></div></td><td>{{ item.patrimonio }}</td><td>{{ item.tipo }}</td><td>{{ item.setor or '—' }}</td><td><span class="status" data-status="{{ item.status }}">{{ item.status }}</span></td></tr>{% endfor %}
+        </tbody></table></div>
+        <div class="lista-registros-movel">{% for item in equipamentos %}<article class="registro-movel"><div class="cabecalho-registro"><strong>{{ item.nome }}</strong><span class="status" data-status="{{ item.status }}">{{ item.status }}</span></div><p class="subtitulo-registro">{{ item.patrimonio }} · {{ item.tipo }}</p><p class="resultado-registro">{{ item.setor or 'Sem setor' }}</p></article>{% endfor %}</div>
+      {% else %}
+        <div class="estado-vazio"><h2>Nenhum equipamento cadastrado</h2><p>Os itens registrados aparecerão aqui após a sincronização.</p><a class="botao secundario" href="{{ url_for('inicio') }}">Abrir equipamentos</a></div>
+      {% endif %}
+    </section>
+  {% endif %}
+{% endblock %}

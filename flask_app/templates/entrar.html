@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block titulo %}AtivoTI | Entrar{% endblock %}
+{% block trilha %}Acesso{% endblock %}
+{% block conteudo %}
+  <section class="cartao formulario-cartao acesso-cartao">
+    <div class="acesso-simbolo"><img src="{{ url_for('static', filename='logo-icone.svg') }}" alt=""></div>
+    <p class="sobretitulo">ACESSO DA EQUIPE DE TI</p>
+    <h1>Entrar no AtivoTI</h1>
+    <p class="texto-ajuda">Equipamentos organizados. Gestão sem complicação.</p>
+    <form method="post" action="{{ url_for('entrar') }}">
+      <div class="campos">
+        <label class="campo-largo" for="login-email">E-mail
+          <input id="login-email" type="email" name="email" maxlength="150" required autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false">
+        </label>
+        <label class="campo-largo" for="login-senha">Senha
+          <input id="login-senha" type="password" name="senha" required autocomplete="current-password">
+        </label>
+      </div>
+      <div class="botoes-formulario">
+        <button class="botao primario" type="submit">Entrar na sua conta</button>
+      </div>
+    </form>
+  </section>
+{% endblock %}

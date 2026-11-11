@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block titulo %}AtivoTI | Manutenções{% endblock %}
+{% block conteudo %}
+  <section class="cabecalho-lista">
+    <div><p class="sobretitulo">HISTÓRICO TÉCNICO</p><h1>Manutenções</h1><p class="texto-ajuda">Registre laudos e consulte os reparos por equipamento.</p></div>
+  </section>
+
+  {% if erro %}<section class="cartao estado estado-erro" role="alert"><h2>Não foi possível carregar as manutenções</h2><p>{{ erro }}</p><a class="botao secundario" href="{{ url_for('manutencoes') }}">Tentar novamente</a></section>
+  {% else %}
+    {% set equipamentos_manuteniveis = equipamentos|selectattr('status', 'in', ['Em estoque', 'Em manutenção'])|list %}
+    {% if pode_editar %}
+      <section class="cartao formulario-cartao formulario-modulo">
+        <p class="sobretitulo">NOVO REGISTRO</p><h2>Registrar manutenção</h2><p class="texto-ajuda">O equipamento deve estar em estoque ou em manutenção.</p>
+        {% if not equipamentos_manuteniveis %}<p class="aviso aviso-inline" role="status">Nenhum equipamento está disponível para receber manutenção.</p>{% endif %}
+        <form method="post" action="{{ url_for('criar_manutencao') }}">
+          <div class="campos campos-tres">
+            <label class="campo-largo">Equipamento *<select name="equipamento_id" required><option value="">Selecione</option>{% for item in equipamentos if item.status in ['Em estoque', 'Em manutenção'] %}<option value="{{ item.id }}">{{ item.patrimonio or 'Sem patrimônio' }} · {{ item.nome }} · {{ item.status }}</option>{% endfor %}</select></label>
+            <label class="campo-largo">Laudo escrito *<textarea name="laudo" maxlength="2000" rows="3" required></textarea></label>
+            <label class="marcacao"><input type="checkbox" name="sem_conserto"> Não tem conserto (dar baixa)</label>
+          </div>
+          <div class="botoes-formulario"><button class="botao primario" type="submit" {% if not equipamentos_manuteniveis %}disabled{% endif %}>Salvar laudo</button></div>
+        </form>
+      </section>
+    {% endif %}
+
+    <section class="cartao tabela-controle bloco-pagina">
+      <div class="barra-tabela"><div><h2>Histórico de manutenções</h2><p>{{ manutencoes|length }} laudo{% if manutencoes|length != 1 %}s{% endif %}</p></div></div>
+      <div class="rolagem tabela-desktop"><table><thead><tr><th>Equipamento</th><th>Data</th><th>Laudo</th><th>Resultado</th></tr></thead><tbody>
+        {% for item in manutencoes %}<tr><td><strong>{{ item.nome_equipamento }}</strong><small>{{ item.patrimonio }}</small></td><td>{{ item.data[:10] }}</td><td class="texto-laudo">{{ item.laudo }}</td><td>{{ 'Sem conserto · baixado' if item.sem_conserto else 'Consertado · voltou ao estoque' }}</td></tr>
+        {% else %}<tr><td colspan="4" class="celula-vazia">Nenhum laudo registrado.</td></tr>{% endfor %}
+      </tbody></table></div>
+      <div class="lista-registros-movel">{% for item in manutencoes %}<article class="registro-movel"><div class="cabecalho-registro"><strong>{{ item.nome_equipamento }}</strong><span class="etiqueta-registro">{{ item.data[:10] }}</span></div><p class="subtitulo-registro">{{ item.patrimonio }}</p><p class="laudo-registro">{{ item.laudo }}</p><p class="resultado-registro">{{ 'Sem conserto · equipamento baixado' if item.sem_conserto else 'Consertado · voltou ao estoque' }}</p></article>{% else %}<p class="vazio-registro">Nenhum laudo registrado.</p>{% endfor %}</div>
+    </section>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block titulo %}AtivoTI | Acesso restrito{% endblock %}
+{% block trilha %}Acesso restrito{% endblock %}
+{% block conteudo %}
+  <section class="cartao formulario-cartao">
+    <p class="sobretitulo">ACESSO RESTRITO</p>
+    <h1>Acesso não permitido</h1>
+    <p class="texto-ajuda">Seu perfil não tem permissão para abrir esta página.</p>
+    <a class="botao primario" href="{{ url_for('inicio') }}">Voltar aos equipamentos</a>
+  </section>
+{% endblock %}

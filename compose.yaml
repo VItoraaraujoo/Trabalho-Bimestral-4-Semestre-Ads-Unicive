@@ -1,0 +1,86 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ativoti
+      POSTGRES_USER: ativoti
+      POSTGRES_PASSWORD: ativoti_local
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - dados_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    command:
+      - sh
+      - -c
+      - alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://ativoti:ativoti_local@db:5432/ativoti
+      JWT_SECRET_KEY: chave-local-ativoti
+      RELATORIOS_DIR: /app/relatorios
+      RELATORIO_TIMEZONE: America/Sao_Paulo
+      CORS_ORIGINS: http://localhost:15002,http://127.0.0.1:15002,http://localhost:5003,http://127.0.0.1:5003
+    ports:
+      - "127.0.0.1:18001:8000"
+    volumes:
+      - ./app:/app/app
+      - ./migrations:/app/migrations
+      - ./alembic.ini:/app/alembic.ini
+      - ./relatorios:/app/relatorios
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 40s
+
+  web:
+    build: .
+    command:
+      - python
+      - -m
+      - flask
+      - --app
+      - flask_app.app
+      - run
+      - --debug
+      - --host=0.0.0.0
+      - --port=5002
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      API_URL: http://api:8000/api/v1
+      FLASK_SECRET_KEY: chave-local-flask-ativoti
+      FLASK_COOKIE_SECURE: "false"
+    ports:
+      - "127.0.0.1:15002:5002"
+    volumes:
+      - ./flask_app:/app/flask_app
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen('http://127.0.0.1:5002/entrar', timeout=3)
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+
+volumes:
+  dados_postgres:

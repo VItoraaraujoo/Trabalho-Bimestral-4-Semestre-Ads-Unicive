@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% set editando = equipamento is not none and equipamento.id is defined %}
+{% block titulo %}AtivoTI | {% if editando %}Editar{% else %}Novo{% endif %} equipamento{% endblock %}
+{% block trilha %}{% if editando %}Editar equipamento{% else %}Novo equipamento{% endif %}{% endblock %}
+{% block conteudo %}
+  <a class="link voltar" href="{{ url_for('inicio') }}">← Voltar para a lista</a>
+  <section class="cartao formulario-cartao">
+    <p class="sobretitulo">INVENTÁRIO DE TI</p>
+    <h1>{% if editando %}Editar equipamento{% else %}Novo equipamento{% endif %}</h1>
+    <p class="texto-ajuda">Preencha os campos abaixo. O número de patrimônio é criado ao salvar.</p>
+    {% if editando %}
+      <form method="post" action="{{ url_for('editar_equipamento', equipamento_id=equipamento.id) }}">
+      <input type="hidden" name="status_original" value="{{ equipamento.status_original if equipamento.status_original is defined else equipamento.status }}">
+    {% else %}
+      <form method="post" action="{{ url_for('novo_equipamento') }}">
+    {% endif %}
+      <div class="campos">
+        <label>Nome *<input name="nome" maxlength="150" required value="{{ equipamento.nome if equipamento else '' }}"></label>
+        <label>Tipo *<input name="tipo" maxlength="80" required placeholder="Ex.: Notebook" value="{{ equipamento.tipo if equipamento else '' }}"></label>
+        {% if editando %}<p class="campo-largo"><strong>Patrimônio:</strong> {{ equipamento.patrimonio }}</p>{% endif %}
+        <label>Número de série<input name="numero_serie" maxlength="100" value="{{ equipamento.numero_serie if equipamento and equipamento.numero_serie else '' }}" placeholder="Deixe em branco se não tiver"></label>
+        <label>Marca<input name="marca" maxlength="100" value="{{ equipamento.marca if equipamento and equipamento.marca else '' }}"></label>
+        <label>Modelo<input name="modelo" maxlength="100" value="{{ equipamento.modelo if equipamento and equipamento.modelo else '' }}"></label>
+        <label>Setor<input name="setor" maxlength="100" value="{{ equipamento.setor if equipamento and equipamento.setor else '' }}"></label>
+        <label>Condição *
+          <select name="condicao" required>
+            <option value="">Selecione</option>
+            {% for condicao in condicao_equipamento %}
+              <option value="{{ condicao }}" {% if equipamento and equipamento.condicao == condicao %}selected{% endif %}>{{ condicao }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Status
+          <select name="status">
+            {% for status in status_equipamento %}
+              <option value="{{ status }}" {% if equipamento and equipamento.status == status %}selected{% elif not equipamento and status == 'Em estoque' %}selected{% endif %}>{{ status }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <small class="texto-ajuda campo-largo ajuda-status" id="ajuda-status">Registre entregas pela alocação. Encerre a manutenção ou dê baixa pelo laudo.</small>
+        <label class="campo-largo">Observação<textarea name="observacao" maxlength="500" rows="3">{{ equipamento.observacao if equipamento and equipamento.observacao else '' }}</textarea></label>
+      </div>
+      <div class="botoes-formulario">
+        <a class="botao secundario" href="{{ url_for('inicio') }}">Cancelar</a>
+        <button class="botao primario" type="submit">Salvar equipamento</button>
+      </div>
+    </form>
+  </section>
+{% endblock %}

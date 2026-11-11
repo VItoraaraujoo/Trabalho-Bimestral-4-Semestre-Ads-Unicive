@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block titulo %}AtivoTI | Novo funcionário{% endblock %}
+{% block conteudo %}
+  <a class="link voltar" href="{{ url_for('funcionarios') }}">← Voltar para funcionários</a>
+  <section class="cartao formulario-cartao formulario-funcionario">
+    <p class="sobretitulo">EQUIPE DA EMPRESA</p>
+    <h1>Novo funcionário</h1>
+    <p class="texto-ajuda">Preencha os dados para cadastrar uma pessoa.</p>
+    <form method="post" action="{{ url_for('criar_funcionario') }}">
+      <div class="campos">
+        <label>Nome completo *<input name="nome" maxlength="150" required autocomplete="name"></label>
+        <label>CPF *<input name="cpf" inputmode="numeric" maxlength="14" placeholder="000.000.000-00" required></label>
+        <label>Matrícula *<input name="matricula" maxlength="50" required></label>
+        <label>Setor *<input name="setor" maxlength="100" required></label>
+      </div>
+      <div class="botoes-formulario"><a class="botao secundario" href="{{ url_for('funcionarios') }}">Cancelar</a><button class="botao primario" type="submit">Cadastrar funcionário</button></div>
+    </form>
+  </section>
+{% endblock %}

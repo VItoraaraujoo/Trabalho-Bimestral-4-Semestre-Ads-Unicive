@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block titulo %}AtivoTI | Equipamentos{% endblock %}
+{% block trilha %}Equipamentos{% endblock %}
+{% block conteudo %}
+  <section class="cabecalho-lista">
+    <div>
+      <p class="sobretitulo">INVENTÁRIO DE TI</p>
+      <h1>Equipamentos</h1>
+      <p class="texto-ajuda">Acompanhe os equipamentos e seus status em um só lugar.</p>
+    </div>
+    {% if pode_editar %}<a class="botao primario" href="{{ url_for('novo_equipamento') }}"><span class="simbolo-mais" aria-hidden="true">+</span>Novo equipamento</a>{% endif %}
+  </section>
+
+  <section class="grade-indicadores" aria-label="Resumo do inventário">
+    <article class="indicador-cartao">
+      <span class="icone-indicador azul-claro"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span>
+      <div><span class="rotulo-indicador">Total de equipamentos</span><strong>{{ resumo.total }}</strong></div>
+    </article>
+    <article class="indicador-cartao">
+      <span class="icone-indicador verde-claro"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4.2 4.2L19 6.8"/></svg></span>
+      <div><span class="rotulo-indicador">Em uso ou emprestados</span><strong>{{ resumo.em_uso }}</strong></div>
+    </article>
+    <article class="indicador-cartao">
+      <span class="icone-indicador amarelo-claro"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg></span>
+      <div><span class="rotulo-indicador">Em manutenção</span><strong>{{ resumo.manutencao }}</strong></div>
+    </article>
+    <article class="indicador-cartao">
+      <span class="icone-indicador vermelho-claro"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9 9l6 6M15 9l-6 6"/></svg></span>
+      <div><span class="rotulo-indicador">Indisponíveis</span><strong>{{ resumo.indisponiveis }}</strong></div>
+    </article>
+  </section>
+
+  <nav class="filtros-rapidos" aria-label="Filtrar por situação">
+    <a class="chip-filtro {% if not filtros.status %}ativo{% endif %}" href="{{ url_for('inicio', q=filtros.q) }}">Todos <span>{{ resumo.total }}</span></a>
+    <a class="chip-filtro {% if filtros.status == 'Em uso' %}ativo{% endif %}" href="{{ url_for('inicio', status='Em uso', tipo=filtros.tipo, setor=filtros.setor, q=filtros.q) }}">Em uso <span>{{ resumo.em_uso }}</span></a>
+    <a class="chip-filtro {% if filtros.status == 'Em manutenção' %}ativo{% endif %}" href="{{ url_for('inicio', status='Em manutenção', tipo=filtros.tipo, setor=filtros.setor, q=filtros.q) }}">Manutenção <span>{{ resumo.manutencao }}</span></a>
+    <a class="chip-filtro {% if filtros.status == 'Baixado' %}ativo{% endif %}" href="{{ url_for('inicio', status='Baixado', tipo=filtros.tipo, setor=filtros.setor, q=filtros.q) }}">Indisponíveis <span>{{ resumo.indisponiveis }}</span></a>
+    {% if filtros.tipo or filtros.setor or filtros.q %}<a class="link limpar-filtros" href="{{ url_for('inicio') }}">Limpar busca</a>{% endif %}
+  </nav>
+  <details class="cartao filtros filtros-avancados" {% if filtros.tipo or filtros.setor or (filtros.status and filtros.status not in ['Em uso', 'Em manutenção', 'Baixado']) %}open{% endif %}>
+    <summary><span class="icone-filtro" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 5h16M7 12h10m-7 7h4"/></svg></span><span>Mais filtros</span><svg class="seta-filtros" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+    <form method="get" action="{{ url_for('inicio') }}">
+      <input type="hidden" name="q" value="{{ filtros.q }}">
+      <div class="campos-filtro">
+        <label>Status
+          <select name="status">
+            <option value="">Todos os status</option>
+            {% for status in status_equipamento %}
+              <option value="{{ status }}" {% if filtros.status == status %}selected{% endif %}>{{ status }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Tipo<input name="tipo" value="{{ filtros.tipo }}" placeholder="Ex.: Notebook"></label>
+        <label>Setor<input name="setor" value="{{ filtros.setor }}" placeholder="Ex.: Laboratório"></label>
+        <button class="botao primario" type="submit">Aplicar filtros</button>
+      </div>
+    </form>
+  </details>
+
+  {% if erro %}
+    <section class="cartao estado estado-erro" role="alert">
+      <span class="icone-vazio icone-erro" aria-hidden="true">!</span>
+      <h2>Não foi possível carregar os equipamentos</h2>
+      <p>{{ erro }}</p>
+      <a class="botao secundario" href="{{ url_for('inicio') }}">Tentar novamente</a>
+    </section>
+  {% elif equipamentos %}
+    <section class="cartao tabela-controle">
+      <div class="barra-tabela">
+        <div><h2>Lista de equipamentos</h2><p>{{ equipamentos|length }} resultado{% if equipamentos|length != 1 %}s{% endif %}</p></div>
+        <a class="link" href="{{ url_for('inicio', status=filtros.status, tipo=filtros.tipo, setor=filtros.setor) }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.2-4.8L4 8M4 4v4h4M4 13a8 8 0 0 0 14.2 4.8L20 16m0 4v-4h-4"/></svg>Atualizar lista</a>
+      </div>
+      <div class="rolagem tabela-desktop">
+        <table>
+        <thead><tr><th>Equipamento</th><th>Patrimônio</th><th>Tipo</th><th>Local</th><th>Status</th>{% if pode_editar %}<th>Ações</th>{% endif %}</tr></thead>
+          <tbody>
+            {% for equipamento in equipamentos %}
+              <tr>
+                <td><div class="identidade-equipamento"><span class="icone-equipamento"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span><strong>{{ equipamento.nome }}</strong></div></td>
+                <td>{{ equipamento.patrimonio }}</td>
+                <td>{{ equipamento.tipo }}</td>
+                <td>{{ equipamento.setor or '—' }}</td>
+                <td><span class="status" data-status="{{ equipamento.status }}">{{ equipamento.status }}</span></td>
+                {% if pode_editar %}
+                  <td class="acoes"><a class="botao pequeno secundario" href="{{ url_for('editar_equipamento', equipamento_id=equipamento.id) }}">Editar</a>{% if equipamento.status == 'Baixado' %}<form action="{{ url_for('excluir_equipamento', equipamento_id=equipamento.id) }}" method="post" onsubmit="return confirm('Deseja excluir este equipamento baixado?')"><button class="botao pequeno perigo" type="submit">Excluir</button></form>{% else %}<span class="texto-ajuda">Dê baixa para excluir</span>{% endif %}</td>
+                {% endif %}
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="lista-equipamentos-movel">
+        {% for equipamento in equipamentos %}
+          <article class="item-equipamento-movel">
+            <div class="linha-item-movel">
+              <span class="icone-equipamento"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span>
+              <span class="dados-equipamento-movel"><strong>{{ equipamento.nome }}</strong><small>{{ equipamento.patrimonio }} · {{ equipamento.tipo }}</small></span>
+              <span class="status" data-status="{{ equipamento.status }}">{{ equipamento.status }}</span>
+              <svg class="seta-item-movel" viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+            </div>
+            <div class="detalhes-equipamento-movel"><span>{{ equipamento.marca or 'Marca não informada' }} {{ equipamento.modelo or '' }}</span><span>{{ equipamento.setor or 'Setor não informado' }}</span></div>
+            {% if pode_editar %}<div class="acoes-moveis"><a class="botao pequeno secundario" href="{{ url_for('editar_equipamento', equipamento_id=equipamento.id) }}">Editar equipamento</a>{% if equipamento.status == 'Baixado' %}<form action="{{ url_for('excluir_equipamento', equipamento_id=equipamento.id) }}" method="post" onsubmit="return confirm('Deseja excluir este equipamento baixado?')"><button class="botao pequeno perigo" type="submit">Excluir</button></form>{% endif %}</div>{% endif %}
+          </article>
+        {% endfor %}
+      </div>
+      <div class="rodape-tabela"><span>Exibindo {{ equipamentos|length }} equipamento{% if equipamentos|length != 1 %}s{% endif %}</span><span class="estado-conectado"><span class="sinal-online" aria-hidden="true"></span>Dados atualizados pela API</span></div>
+    </section>
+  {% else %}
+    <section class="cartao estado estado-vazio">
+      <span class="ilustracao-vazia" aria-hidden="true"><svg viewBox="0 0 96 96"><rect x="13" y="17" width="70" height="49" rx="8"/><path d="M35 79h26M48 66v13"/><path class="marca-check" d="m32 41 10 10 23-24"/></svg></span>
+      <p class="sobretitulo">INVENTÁRIO ORGANIZADO, COMEÇO SIMPLES</p>
+      <h2>{% if filtros.status or filtros.tipo or filtros.setor %}Nenhum equipamento encontrado{% else %}Seu inventário ainda está vazio{% endif %}</h2>
+      <p>{% if filtros.status or filtros.tipo or filtros.setor %}Tente outros filtros ou limpe a busca para ver todos os equipamentos.{% else %}Cadastre o primeiro equipamento e acompanhe localização, condição e status por aqui.{% endif %}</p>
+      {% if filtros.status or filtros.tipo or filtros.setor %}<a class="botao secundario" href="{{ url_for('inicio') }}">Limpar filtros</a>{% elif pode_editar %}<a class="botao primario" href="{{ url_for('novo_equipamento') }}"><span class="simbolo-mais" aria-hidden="true">+</span>Cadastrar equipamento</a>{% endif %}
+    </section>
+  {% endif %}
+{% endblock %}

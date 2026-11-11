@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block titulo %}AtivoTI | {% if modo_admin %}Editar acesso{% else %}Minha conta{% endif %}{% endblock %}
+{% block trilha %}{% if modo_admin %}Usuários / Editar acesso{% else %}Minha conta{% endif %}{% endblock %}
+{% block conteudo %}
+  <section class="cabecalho-lista">
+    <div>
+      <p class="sobretitulo">{% if modo_admin %}GESTÃO DE ACESSOS{% else %}PERFIL{% endif %}</p>
+      <h1>{% if modo_admin %}Editar credenciais{% else %}Minha conta{% endif %}</h1>
+      <p class="texto-ajuda">Atualize o e-mail de login e, se desejar, defina uma nova senha.</p>
+    </div>
+    {% if modo_admin %}<a class="botao secundario" href="{{ url_for('usuarios') }}">Voltar aos usuários</a>{% endif %}
+  </section>
+
+  <section class="cartao formulario-credenciais">
+    <div class="barra-tabela">
+      <div><h2>{{ usuario_alvo.get('nome', 'Conta AtivoTI') }}</h2><p>{% if modo_admin %}{{ 'Administrador' if usuario_alvo.get('perfil') == 'admin' else 'Consulta' }}{% else %}Gerencie seu acesso ao AtivoTI{% endif %}</p></div>
+      <span class="etiqueta-perfil {{ 'perfil-admin' if usuario_alvo.get('perfil') == 'admin' else 'perfil-comum' }}">{{ 'Administrador' if usuario_alvo.get('perfil') == 'admin' else 'Consulta' }}</span>
+    </div>
+    <form method="post" action="{{ url_for('editar_credenciais_usuario', usuario_id=usuario_alvo.get('id')) if modo_admin else url_for('minha_conta') }}">
+      <div class="campos">
+        <label for="email">E-mail de login *<input id="email" type="email" name="email" maxlength="150" value="{{ usuario_alvo.get('email', '') }}" autocomplete="username" required></label>
+        <label for="nova_senha">Nova senha<input id="nova_senha" type="password" name="nova_senha" minlength="8" maxlength="72" autocomplete="new-password" aria-describedby="ajuda-senha"></label>
+      </div>
+      <p class="texto-ajuda" id="ajuda-senha">Deixe a senha em branco para manter a atual. Se preencher, use pelo menos 8 caracteres (limite de 72 bytes). A senha nunca é exibida nesta tela.</p>
+      <div class="botoes-formulario"><button class="botao primario" type="submit">Salvar credenciais</button></div>
+    </form>
+  </section>
+{% endblock %}

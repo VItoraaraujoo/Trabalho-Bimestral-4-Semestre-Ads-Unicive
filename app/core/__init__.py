@@ -1,1 +1,0 @@
-"""Configurações e utilitários centrais."""

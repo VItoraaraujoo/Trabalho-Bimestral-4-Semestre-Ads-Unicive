@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block titulo %}AtivoTI | Funcionários{% endblock %}
+{% block conteudo %}
+  <section class="cabecalho-lista">
+    <div>
+      <p class="sobretitulo">EQUIPE DA EMPRESA</p>
+      <h1>Funcionários</h1>
+      <p class="texto-ajuda">Consulte cadastros ou abra a ficha para ver equipamentos e sistemas vinculados.</p>
+    </div>
+    <div class="botoes-cabecalho">
+      <a class="botao secundario" href="{{ url_for('consulta_funcionarios') }}">Pesquisar funcionário</a>
+      {% if pode_editar %}<a class="botao primario" href="{{ url_for('novo_funcionario') }}">Novo funcionário</a>{% endif %}
+    </div>
+  </section>
+
+  {% if erro %}
+    <section class="cartao estado estado-erro" role="alert"><h2>Não foi possível carregar os funcionários</h2><p>{{ erro }}</p><a class="botao secundario" href="{{ url_for('funcionarios') }}">Tentar novamente</a></section>
+  {% else %}
+    <form class="cartao filtro-consulta" method="get" action="{{ url_for('funcionarios') }}" role="search">
+      <label for="busca-funcionarios">Buscar na lista</label>
+      <input id="busca-funcionarios" name="q" type="search" value="{{ request.args.get('q', '') }}" placeholder="Nome, matrícula, CPF ou setor">
+      <button class="botao primario" type="submit">Buscar</button>
+      {% if request.args.get('q') %}<a class="link" href="{{ url_for('funcionarios') }}">Limpar</a>{% endif %}
+    </form>
+
+    <section class="cartao tabela-controle">
+      <div class="barra-tabela"><div><h2>Cadastros ativos</h2><p>{{ funcionarios|length }} funcionário{% if funcionarios|length != 1 %}s{% endif %}</p></div></div>
+      <div class="rolagem tabela-desktop"><table><thead><tr><th>Nome</th><th>Matrícula</th><th>Setor</th><th>CPF</th><th>Ações</th></tr></thead><tbody>
+        {% for pessoa in funcionarios %}
+          <tr><td><strong>{{ pessoa.nome }}</strong><small>ID {{ pessoa.id }}</small></td><td>{{ pessoa.matricula }}</td><td>{{ pessoa.setor }}</td><td>{{ pessoa.cpf|cpf_mascarado }}</td><td><div class="acoes"><a class="botao pequeno secundario" href="{{ url_for('consulta_funcionarios', q=pessoa.nome, funcionario_id=pessoa.id) }}">Abrir ficha</a>{% if pode_editar %}<a class="botao pequeno secundario" href="{{ url_for('editar_funcionario', funcionario_id=pessoa.id) }}">Editar</a><form action="{{ url_for('excluir_funcionario', funcionario_id=pessoa.id) }}" method="post" onsubmit="return confirm('Remover este funcionário da empresa? O histórico será mantido.')"><button class="botao pequeno perigo" type="submit">Remover</button></form>{% endif %}</div></td></tr>
+        {% else %}<tr><td colspan="5" class="celula-vazia">Nenhum funcionário encontrado.</td></tr>{% endfor %}
+      </tbody></table></div>
+      <div class="lista-registros-movel">
+        {% for pessoa in funcionarios %}
+          <article class="registro-movel"><div class="cabecalho-registro"><strong>{{ pessoa.nome }}</strong><span class="etiqueta-registro">{{ pessoa.setor }}</span></div><dl><div><dt>Matrícula</dt><dd>{{ pessoa.matricula }}</dd></div><div><dt>CPF</dt><dd>{{ pessoa.cpf|cpf_mascarado }}</dd></div></dl><div class="acoes-registro"><a class="botao pequeno secundario" href="{{ url_for('consulta_funcionarios', q=pessoa.nome, funcionario_id=pessoa.id) }}">Abrir ficha</a>{% if pode_editar %}<a class="botao pequeno secundario" href="{{ url_for('editar_funcionario', funcionario_id=pessoa.id) }}">Editar</a><form action="{{ url_for('excluir_funcionario', funcionario_id=pessoa.id) }}" method="post" onsubmit="return confirm('Remover este funcionário da empresa? O histórico será mantido.')"><button class="botao pequeno perigo" type="submit">Remover</button></form>{% endif %}</div></article>
+        {% else %}<p class="vazio-registro">Nenhum funcionário encontrado.</p>{% endfor %}
+      </div>
+    </section>
+  {% endif %}
+{% endblock %}

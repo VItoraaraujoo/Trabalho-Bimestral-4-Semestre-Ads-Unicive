@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block titulo %}AtivoTI | Relatórios{% endblock %}
+{% block trilha %}Relatórios{% endblock %}
+{% block conteudo %}
+  <section class="cabecalho-lista">
+    <div><p class="sobretitulo">RESUMO DO PATRIMÔNIO DE TI</p><h1>Relatório de equipamentos</h1><p class="texto-ajuda">Distribuição dos equipamentos por status, tipo e setor.</p></div>
+    {% if relatorio %}<button class="botao primario" type="button" onclick="window.print()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 8V4h10v4M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v6H7z"/></svg>Imprimir / salvar PDF</button>{% endif %}
+  </section>
+
+  {% if erro %}
+    <section class="cartao estado" role="alert"><p>{{ erro }}</p><a class="botao secundario" href="{{ url_for('relatorio') }}">Tentar novamente</a></section>
+  {% elif relatorio %}
+    <section class="cartao total-relatorio">
+      <span class="icone-indicador azul-claro"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4" width="17" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span>
+      <div><p class="sobretitulo">TOTAL CADASTRADO</p><strong>{{ relatorio.total_equipamentos }}</strong><span>equipamento{% if relatorio.total_equipamentos != 1 %}s{% endif %}</span></div>
+      <span class="selo-relatorio">Dados atuais da API</span>
+    </section>
+
+    <div class="grade-relatorios">
+      {% for titulo, grupos in [('Por status', relatorio.por_status), ('Por tipo', relatorio.por_tipo), ('Por setor', relatorio.por_setor)] %}
+        <section class="cartao distribuicao-relatorio">
+          <div class="barra-tabela"><div><h2>{{ titulo }}</h2><p>Quantidade por categoria</p></div></div>
+          {% if grupos %}
+            <ul class="lista-distribuicao">{% for grupo in grupos %}{% set percentual = (grupo.quantidade * 100 / (relatorio.total_equipamentos or 1))|round(0, 'ceil') %}<li><div><span>{{ grupo.nome }}</span><strong>{{ grupo.quantidade }}</strong></div><div class="barra-progresso" role="img" aria-label="{{ percentual }} por cento do inventário"><span style="width: {{ 100 if percentual > 100 else percentual }}%"></span></div></li>{% endfor %}</ul>
+          {% else %}<p class="vazio-distribuicao">Sem dados para mostrar.</p>{% endif %}
+        </section>
+      {% endfor %}
+    </div>
+
+    <section class="cartao tabela-controle bloco-historico">
+      <div class="barra-tabela"><div><h2>Inventário detalhado</h2><p>{{ relatorio.equipamentos|length }} equipamento{% if relatorio.equipamentos|length != 1 %}s{% endif %}</p></div><span class="etiqueta-registro">Visão atual</span></div>
+      <div class="rolagem tabela-desktop"><table>
+        <thead><tr><th>Equipamento</th><th>Patrimônio / série</th><th>Condição</th><th>Status</th><th>Localização</th><th>Responsável</th></tr></thead>
+        <tbody>{% for item in relatorio.equipamentos %}<tr><td><strong>{{ item.nome }}</strong><small>{{ item.tipo }} · {{ item.marca or '' }} {{ item.modelo or '' }}</small></td><td>{{ item.patrimonio or '—' }}<small>Série: {{ item.numero_serie or 'não informada' }}</small></td><td>{{ item.condicao }}</td><td><span class="status" data-status="{{ item.status }}">{{ item.status }}</span></td><td>{{ item.setor or 'Sem setor' }}</td><td>{% if item.nome_funcionario %}{{ item.nome_funcionario }}<small>{{ item.matricula_funcionario }} · {{ item.cpf_funcionario|cpf_mascarado }}</small>{% else %}Sem responsável{% endif %}</td></tr>{% else %}<tr><td colspan="6" class="celula-vazia">Nenhum equipamento cadastrado.</td></tr>{% endfor %}</tbody>
+      </table></div>
+      <div class="lista-registros-movel">{% for item in relatorio.equipamentos %}<article class="registro-movel"><div class="cabecalho-registro"><strong>{{ item.nome }}</strong><span class="status" data-status="{{ item.status }}">{{ item.status }}</span></div><p class="subtitulo-registro">{{ item.patrimonio or 'Sem patrimônio' }} · {{ item.tipo }}</p><dl><div><dt>Marca / modelo</dt><dd>{{ item.marca or 'Sem marca' }} {{ item.modelo or '' }}</dd></div><div><dt>Série</dt><dd>{{ item.numero_serie or 'Não informada' }}</dd></div><div><dt>Condição</dt><dd>{{ item.condicao }}</dd></div><div><dt>Setor</dt><dd>{{ item.setor or 'Sem setor' }}</dd></div><div class="campo-registro-largo"><dt>Responsável</dt><dd>{% if item.nome_funcionario %}{{ item.nome_funcionario }} · {{ item.matricula_funcionario }}{% else %}Sem responsável{% endif %}</dd></div></dl></article>{% else %}<p class="vazio-registro">Nenhum equipamento cadastrado.</p>{% endfor %}</div>
+    </section>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block titulo %}AtivoTI | Usuários{% endblock %}
+{% block trilha %}Usuários{% endblock %}
+{% block conteudo %}
+  <section class="cabecalho-lista">
+    <div><p class="sobretitulo">EQUIPE DE TI</p><h1>Usuários e perfis</h1><p class="texto-ajuda">Gerencie quem pode administrar o AtivoTI e quem acessa em modo de consulta.</p></div>
+  </section>
+
+  <details class="acao-gestao cartao usuarios-formulario">
+    <summary><span class="icone-acao azul-claro"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3"/><path d="M3.5 20v-1.5a5.5 5.5 0 0 1 11 0V20M18 8v6m-3-3h6"/></svg></span><span><strong>Novo usuário</strong><small>Adicione um acesso e escolha o perfil</small></span><span class="abrir-acao">+</span></summary>
+    <div class="conteudo-acao">
+      <form method="post" action="{{ url_for('usuarios') }}">
+        <div class="campos">
+          <label>Nome completo *<input name="nome" maxlength="150" required></label>
+          <label>E-mail *<input type="email" name="email" maxlength="150" required></label>
+          <label>Senha *<input type="password" name="senha" minlength="8" maxlength="72" required autocomplete="new-password"></label>
+          <label>CPF *<input name="cpf" inputmode="numeric" placeholder="11 números" required></label>
+          <label>Matrícula *<input name="matricula" maxlength="50" required></label>
+          <label>Setor *<input name="setor" maxlength="100" required></label>
+          <label>Perfil<select name="perfil"><option value="comum">Somente consulta e relatórios</option><option value="admin">Administrador</option></select></label>
+        </div>
+        <p class="texto-ajuda">O perfil define as ações disponíveis para cada acesso.</p>
+        <div class="botoes-formulario"><button class="botao primario" type="submit"><span class="simbolo-mais" aria-hidden="true">+</span>Cadastrar usuário</button></div>
+      </form>
+    </div>
+  </details>
+
+  {% if erro %}
+    <section class="cartao estado" role="alert"><p>{{ erro }}</p></section>
+  {% else %}
+    <section class="cartao tabela-controle usuarios-lista">
+      <div class="barra-tabela"><div><h2>Usuários cadastrados</h2><p>{{ usuarios|length }} conta{% if usuarios|length != 1 %}s{% endif %}</p></div><a class="link" href="{{ url_for('usuarios') }}">Atualizar lista</a></div>
+      <div class="rolagem tabela-desktop"><table>
+        <thead><tr><th>Nome</th><th>E-mail</th><th>CPF</th><th>Matrícula</th><th>Setor</th><th>Perfil</th><th>Ações</th></tr></thead>
+        <tbody>{% for usuario in usuarios %}<tr><td><strong>{{ usuario.nome }}</strong><small>ID {{ usuario.id }}</small></td><td>{{ usuario.email }}</td><td>{{ usuario.cpf|cpf_mascarado }}</td><td>{{ usuario.matricula }}</td><td>{{ usuario.setor }}</td><td><span class="etiqueta-perfil {{ 'perfil-admin' if usuario.perfil == 'admin' else 'perfil-comum' }}">{{ 'Administrador' if usuario.perfil == 'admin' else 'Consulta' }}</span></td><td><div class="acoes-tabela"><a class="botao pequeno secundario" href="{{ url_for('editar_credenciais_usuario', usuario_id=usuario.id) }}">Editar</a>{% if usuario.id != session.get('usuario', {}).get('id') %}<form action="{{ url_for('excluir_usuario', usuario_id=usuario.id) }}" method="post" onsubmit="return confirm('Deseja excluir este usuário?')"><button class="botao pequeno perigo" type="submit">Excluir</button></form>{% else %}<span class="etiqueta-registro">Conectado</span>{% endif %}</div></td></tr>{% else %}<tr><td colspan="7" class="celula-vazia">Nenhum usuário cadastrado.</td></tr>{% endfor %}</tbody>
+      </table></div>
+      <div class="lista-registros-movel">{% for usuario in usuarios %}<article class="registro-movel"><div class="cabecalho-registro"><strong>{{ usuario.nome }}</strong><span class="etiqueta-perfil {{ 'perfil-admin' if usuario.perfil == 'admin' else 'perfil-comum' }}">{{ 'Administrador' if usuario.perfil == 'admin' else 'Consulta' }}</span></div><p class="subtitulo-registro">{{ usuario.email }}</p><dl><div><dt>CPF</dt><dd>{{ usuario.cpf|cpf_mascarado }}</dd></div><div><dt>Matrícula</dt><dd>{{ usuario.matricula }}</dd></div><div><dt>Setor</dt><dd>{{ usuario.setor }}</dd></div></dl><div class="acoes-registro"><a class="botao pequeno secundario" href="{{ url_for('editar_credenciais_usuario', usuario_id=usuario.id) }}">Editar login e senha</a>{% if usuario.id != session.get('usuario', {}).get('id') %}<form action="{{ url_for('excluir_usuario', usuario_id=usuario.id) }}" method="post" onsubmit="return confirm('Deseja excluir este usuário?')"><button class="botao pequeno perigo" type="submit">Excluir usuário</button></form>{% else %}<span class="etiqueta-registro">Conectado</span>{% endif %}</div></article>{% else %}<p class="vazio-registro">Nenhum usuário cadastrado.</p>{% endfor %}</div>
+    </section>
+  {% endif %}
+{% endblock %}

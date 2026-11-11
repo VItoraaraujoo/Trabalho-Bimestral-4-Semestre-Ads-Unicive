@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block titulo %}AtivoTI | Sistemas{% endblock %}
+{% block conteudo %}
+  <section class="cabecalho-lista">
+    <div><p class="sobretitulo">ACESSOS DA EQUIPE</p><h1>Sistemas</h1><p class="texto-ajuda">Acompanhe quais sistemas cada funcionário utiliza e o período de acesso.</p></div>
+  </section>
+
+  {% if erro %}<section class="cartao estado estado-erro" role="alert"><h2>Não foi possível carregar os sistemas</h2><p>{{ erro }}</p><a class="botao secundario" href="{{ url_for('sistemas') }}">Tentar novamente</a></section>
+  {% else %}
+    {% if pode_editar %}
+      <section class="cartao formulario-cartao formulario-modulo">
+        <p class="sobretitulo">NOVO VÍNCULO</p><h2>Adicionar sistema utilizado</h2><p class="texto-ajuda">Associe um sistema a um funcionário ativo.</p>
+        {% if not funcionarios %}<p class="aviso aviso-inline" role="status">Cadastre um funcionário antes de associar um sistema.</p>{% endif %}
+        <form method="post" action="{{ url_for('criar_sistema') }}">
+          <div class="campos campos-tres">
+            <label>Funcionário *<select name="funcionario_id" required><option value="">Selecione</option>{% for pessoa in funcionarios %}<option value="{{ pessoa.id }}">{{ pessoa.nome }} · {{ pessoa.matricula }}</option>{% endfor %}</select></label>
+            <label>Nome do sistema *<input name="nome_sistema" maxlength="150" placeholder="Ex.: Microsoft 365" required></label>
+          </div>
+          <div class="botoes-formulario"><button class="botao primario" type="submit" {% if not funcionarios %}disabled{% endif %}>Adicionar sistema</button></div>
+        </form>
+      </section>
+    {% endif %}
+
+    <section class="cartao tabela-controle bloco-pagina">
+      <div class="barra-tabela"><div><h2>Sistemas vinculados</h2><p>{{ sistemas|length }} registro{% if sistemas|length != 1 %}s{% endif %} · ativos e encerrados</p></div></div>
+      <div class="rolagem tabela-desktop"><table><thead><tr><th>Sistema</th><th>Funcionário</th><th>Matrícula</th><th>Início</th><th>Fim</th><th>Status</th><th>Ação</th></tr></thead><tbody>
+        {% for item in sistemas %}<tr><td><strong>{{ item.nome_sistema }}</strong></td><td><a class="link" href="{{ url_for('consulta_funcionarios', q=item.nome_funcionario, funcionario_id=item.funcionario_id) }}">{{ item.nome_funcionario }}</a></td><td>{{ item.matricula_funcionario }}</td><td>{{ item.data_inicio[:10] }}</td><td>{{ item.data_fim[:10] if item.data_fim else '—' }}</td><td><span class="status" data-status="{{ 'Em uso' if not item.data_fim else 'Em estoque' }}">{{ 'Em uso' if not item.data_fim else 'Encerrado' }}</span></td><td>{% if pode_editar and not item.data_fim %}<form action="{{ url_for('finalizar_sistema', sistema_id=item.id) }}" method="post"><button class="botao pequeno secundario" type="submit">Finalizar uso</button></form>{% else %}—{% endif %}</td></tr>
+        {% else %}<tr><td colspan="7" class="celula-vazia">Nenhum sistema registrado.</td></tr>{% endfor %}
+      </tbody></table></div>
+      <div class="lista-registros-movel">{% for item in sistemas %}<article class="registro-movel"><div class="cabecalho-registro"><strong>{{ item.nome_sistema }}</strong><span class="status" data-status="{{ 'Em uso' if not item.data_fim else 'Em estoque' }}">{{ 'Em uso' if not item.data_fim else 'Encerrado' }}</span></div><p class="subtitulo-registro"><a href="{{ url_for('consulta_funcionarios', q=item.nome_funcionario, funcionario_id=item.funcionario_id) }}">{{ item.nome_funcionario }}</a> · {{ item.matricula_funcionario }}</p><dl><div><dt>Início</dt><dd>{{ item.data_inicio[:10] }}</dd></div><div><dt>Fim</dt><dd>{{ item.data_fim[:10] if item.data_fim else '—' }}</dd></div></dl>{% if pode_editar and not item.data_fim %}<form class="acoes-registro" action="{{ url_for('finalizar_sistema', sistema_id=item.id) }}" method="post"><button class="botao pequeno secundario" type="submit">Finalizar uso</button></form>{% endif %}</article>{% else %}<p class="vazio-registro">Nenhum sistema registrado.</p>{% endfor %}</div>
+    </section>
+  {% endif %}
+{% endblock %}

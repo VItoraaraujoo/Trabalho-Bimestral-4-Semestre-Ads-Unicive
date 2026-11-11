@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 145" role="img" aria-labelledby="title desc">
+  <title id="title">AtivoTI</title>
+  <desc id="desc">Equipamentos organizados. Gestão sem complicação.</desc>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="8" y="10" width="102" height="76" rx="10" stroke="#2563EB" stroke-width="10"/>
+    <path d="m34 48 18 17 34-36" stroke="#14B8A6" stroke-width="11"/>
+    <path d="M59 88v14M42 103h48" stroke="#0F2742" stroke-width="9"/>
+  </g>
+  <text x="137" y="82" fill="#0F2742" font-family="Inter, Arial, sans-serif" font-size="72" font-weight="760" letter-spacing="-4">Ativo<tspan fill="#2563EB">TI</tspan></text>
+  <text x="10" y="134" fill="#64748B" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="500">Equipamentos organizados. Gestão sem complicação.</text>
+</svg>

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block titulo %}AtivoTI | Consultar funcionário{% endblock %}
+{% block conteudo %}
+  <section class="cabecalho-lista">
+    <div>
+      <p class="sobretitulo">FICHA COMPLETA</p>
+      <h1>Consultar funcionário</h1>
+      <p class="texto-ajuda">Pesquise por nome, matrícula, CPF ou setor para ver o cadastro, os equipamentos e os sistemas.</p>
+    </div>
+    <a class="botao secundario" href="{{ url_for('funcionarios') }}">Voltar para funcionários</a>
+  </section>
+
+  <form class="cartao filtro-consulta" method="get" action="{{ url_for('consulta_funcionarios') }}" role="search">
+    <label for="busca-ficha">Funcionário</label>
+    <input id="busca-ficha" name="q" type="search" value="{{ consulta }}" placeholder="Digite nome, matrícula, CPF ou setor" required>
+    <button class="botao primario" type="submit">Pesquisar</button>
+    {% if consulta %}<a class="link" href="{{ url_for('consulta_funcionarios') }}">Limpar</a>{% endif %}
+  </form>
+
+  {% if erro %}
+    <section class="cartao estado estado-erro" role="alert"><h2>Não foi possível fazer a consulta</h2><p>{{ erro }}</p></section>
+  {% elif funcionario %}
+    <section class="cartao ficha-funcionario">
+      <div class="cabecalho-ficha"><div><p class="sobretitulo">DADOS DO FUNCIONÁRIO</p><h2>{{ funcionario.nome }}</h2><p class="texto-ajuda">Cadastro nº {{ funcionario.id }}</p></div><span class="status" data-status="{{ 'Em uso' if funcionario.ativo else 'Baixado' }}">{{ 'Ativo' if funcionario.ativo else 'Inativo' }}</span></div>
+      <dl class="dados-ficha">
+        <div><dt>Matrícula</dt><dd>{{ funcionario.matricula }}</dd></div>
+        <div><dt>Setor</dt><dd>{{ funcionario.setor }}</dd></div>
+        <div><dt>CPF</dt><dd>{% if pode_editar %}{{ funcionario.cpf }}{% else %}{{ funcionario.cpf|cpf_mascarado }}{% endif %}</dd></div>
+      </dl>
+      {% if pode_editar and funcionario.ativo %}<a class="botao pequeno secundario" href="{{ url_for('editar_funcionario', funcionario_id=funcionario.id) }}">Editar cadastro</a>{% endif %}
+    </section>
+
+    <section class="cartao tabela-controle bloco-consulta">
+      <div class="barra-tabela"><div><h2>Equipamentos vinculados</h2><p>Entregas atuais e histórico de devoluções · {{ alocacoes|length }} registro{% if alocacoes|length != 1 %}s{% endif %}</p></div><a class="link" href="{{ url_for('emprestimos') }}">Abrir empréstimos</a></div>
+      <div class="rolagem tabela-desktop"><table><thead><tr><th>Equipamento</th><th>Patrimônio</th><th>Vínculo</th><th>Entregue</th><th>Devolvido</th><th>Observação</th></tr></thead><tbody>
+        {% for item in alocacoes %}<tr><td><strong>{{ item.nome_equipamento }}</strong></td><td>{{ item.patrimonio }}</td><td><span class="status" data-status="{{ item.situacao if not item.data_devolucao else 'Em estoque' }}">{{ item.situacao if not item.data_devolucao else 'Devolvido' }}</span></td><td>{{ item.data_alocacao[:10] }}</td><td>{{ item.data_devolucao[:10] if item.data_devolucao else 'Em aberto' }}</td><td>{{ item.observacao or '—' }}</td></tr>
+        {% else %}<tr><td colspan="6" class="celula-vazia">Nenhum equipamento foi vinculado a este funcionário.</td></tr>{% endfor %}
+      </tbody></table></div>
+      <div class="lista-registros-movel">{% for item in alocacoes %}<article class="registro-movel"><div class="cabecalho-registro"><strong>{{ item.nome_equipamento }}</strong><span class="status" data-status="{{ item.situacao if not item.data_devolucao else 'Em estoque' }}">{{ item.situacao if not item.data_devolucao else 'Devolvido' }}</span></div><p class="subtitulo-registro">Patrimônio {{ item.patrimonio }}</p><dl><div><dt>Entregue</dt><dd>{{ item.data_alocacao[:10] }}</dd></div><div><dt>Devolvido</dt><dd>{{ item.data_devolucao[:10] if item.data_devolucao else 'Em aberto' }}</dd></div><div class="campo-registro-largo"><dt>Observação</dt><dd>{{ item.observacao or '—' }}</dd></div></dl></article>{% else %}<p class="vazio-registro">Nenhum equipamento foi vinculado a este funcionário.</p>{% endfor %}</div>
+    </section>
+
+    <section class="cartao tabela-controle bloco-consulta">
+      <div class="barra-tabela"><div><h2>Sistemas utilizados</h2><p>Acessos em uso e encerrados · {{ sistemas|length }} registro{% if sistemas|length != 1 %}s{% endif %}</p></div><a class="link" href="{{ url_for('sistemas') }}">Abrir sistemas</a></div>
+      <div class="rolagem tabela-desktop"><table><thead><tr><th>Sistema</th><th>Início</th><th>Fim</th><th>Status</th></tr></thead><tbody>
+        {% for item in sistemas %}<tr><td><strong>{{ item.nome_sistema }}</strong></td><td>{{ item.data_inicio[:10] }}</td><td>{{ item.data_fim[:10] if item.data_fim else '—' }}</td><td><span class="status" data-status="{{ 'Em uso' if not item.data_fim else 'Em estoque' }}">{{ 'Em uso' if not item.data_fim else 'Encerrado' }}</span></td></tr>
+        {% else %}<tr><td colspan="4" class="celula-vazia">Nenhum sistema foi vinculado a este funcionário.</td></tr>{% endfor %}
+      </tbody></table></div>
+      <div class="lista-registros-movel">{% for item in sistemas %}<article class="registro-movel"><div class="cabecalho-registro"><strong>{{ item.nome_sistema }}</strong><span class="status" data-status="{{ 'Em uso' if not item.data_fim else 'Em estoque' }}">{{ 'Em uso' if not item.data_fim else 'Encerrado' }}</span></div><dl><div><dt>Início</dt><dd>{{ item.data_inicio[:10] }}</dd></div><div><dt>Fim</dt><dd>{{ item.data_fim[:10] if item.data_fim else '—' }}</dd></div></dl></article>{% else %}<p class="vazio-registro">Nenhum sistema foi vinculado a este funcionário.</p>{% endfor %}</div>
+    </section>
+  {% elif consulta and funcionarios %}
+    <section class="cartao tabela-controle">
+      <div class="barra-tabela"><div><h2>Resultados da pesquisa</h2><p>{{ funcionarios|length }} funcionário{% if funcionarios|length != 1 %}s{% endif %} encontrado{% if funcionarios|length != 1 %}s{% endif %}. Selecione uma ficha.</p></div></div>
+      <div class="lista-resultados-funcionarios">{% for pessoa in funcionarios %}<a class="resultado-funcionario" href="{{ url_for('consulta_funcionarios', q=consulta, funcionario_id=pessoa.id) }}"><span><strong>{{ pessoa.nome }}</strong><small>Matrícula {{ pessoa.matricula }} · {{ pessoa.setor }}{% if not pessoa.ativo %} · Inativo{% endif %}</small></span><span class="seta-modulo" aria-hidden="true">›</span></a>{% endfor %}</div>
+    </section>
+  {% elif consulta %}
+    <section class="cartao estado estado-vazio"><h2>Nenhum funcionário encontrado</h2><p>Confira o nome, matrícula, CPF ou setor digitado.</p></section>
+  {% else %}
+    <section class="cartao estado estado-vazio"><h2>Pesquise um funcionário</h2><p>Os dados do cadastro, as entregas de equipamentos e os sistemas usados aparecerão nesta tela.</p></section>
+  {% endif %}
+{% endblock %}

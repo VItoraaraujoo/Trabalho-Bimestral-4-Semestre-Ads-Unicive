@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block titulo %}AtivoTI | Editar funcionário{% endblock %}
+{% block trilha %}Editar funcionário{% endblock %}
+{% block conteudo %}
+  <a class="link voltar" href="{{ url_for('consulta_funcionarios', funcionario_id=funcionario.id) }}">← Voltar para a ficha do funcionário</a>
+  <section class="cartao formulario-cartao formulario-funcionario">
+    <p class="sobretitulo">EQUIPE DA EMPRESA</p>
+    <h1>Editar funcionário</h1>
+    <p class="texto-ajuda">ID: {{ funcionario.id }}</p>
+    <form method="post" action="{{ url_for('editar_funcionario', funcionario_id=funcionario.id) }}">
+      <div class="campos">
+        <label>Nome completo *<input name="nome" maxlength="150" required value="{{ funcionario.nome }}"></label>
+        <label>CPF *<input name="cpf" inputmode="numeric" required value="{{ funcionario.cpf }}"></label>
+        <label>Matrícula *<input name="matricula" maxlength="50" required value="{{ funcionario.matricula }}"></label>
+        <label>Setor *<input name="setor" maxlength="100" required value="{{ funcionario.setor }}"></label>
+      </div>
+      <div class="botoes-formulario">
+        <a class="botao secundario" href="{{ url_for('consulta_funcionarios', funcionario_id=funcionario.id) }}">Cancelar</a>
+        <button class="botao primario" type="submit">Salvar alterações</button>
+      </div>
+    </form>
+  </section>
+{% endblock %}

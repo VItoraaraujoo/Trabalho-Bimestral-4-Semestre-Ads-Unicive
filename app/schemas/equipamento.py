@@ -5,19 +5,26 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 class StatusEquipamento(str, Enum):
     EM_USO = "Em uso"
-    DISPONIVEL = "Disponível"
+    EM_ESTOQUE = "Em estoque"
+    EMPRESTADO = "Emprestado"
     EM_MANUTENCAO = "Em manutenção"
-    DESCARTADO = "Descartado"
+    BAIXADO = "Baixado"
+
+
+class CondicaoEquipamento(str, Enum):
+    NOVO = "Novo"
+    USADO = "Usado"
 
 
 class EquipamentoBase(BaseModel):
     nome: str = Field(min_length=1, max_length=150, description="Nome de identificação")
     tipo: str = Field(min_length=1, max_length=80, description="Tipo do equipamento")
-    patrimonio: str | None = Field(default=None, max_length=60)
+    numero_serie: str | None = Field(default=None, max_length=100)
     marca: str | None = Field(default=None, max_length=100)
     modelo: str | None = Field(default=None, max_length=100)
     setor: str | None = Field(default=None, max_length=100)
-    status: StatusEquipamento = StatusEquipamento.DISPONIVEL
+    condicao: CondicaoEquipamento
+    status: StatusEquipamento = StatusEquipamento.EM_ESTOQUE
     observacao: str | None = Field(default=None, max_length=500)
 
     @field_validator("nome", "tipo")
@@ -28,7 +35,7 @@ class EquipamentoBase(BaseModel):
             raise ValueError("O campo não pode ficar vazio.")
         return value
 
-    @field_validator("patrimonio", "marca", "modelo", "setor", "observacao")
+    @field_validator("numero_serie", "marca", "modelo", "setor", "observacao")
     @classmethod
     def normalizar_campos_opcionais(cls, value: str | None) -> str | None:
         if value is None:
@@ -49,3 +56,4 @@ class EquipamentoRead(EquipamentoBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    patrimonio: str

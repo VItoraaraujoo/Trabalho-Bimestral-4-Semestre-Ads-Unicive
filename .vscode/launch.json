@@ -1,0 +1,37 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "AtivoTI: iniciar no navegador",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "url": "http://localhost:15002/entrar",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "AtivoTI: iniciar sistema"
+    },
+    {
+      "name": "AtivoTI: Flutter Web",
+      "type": "dart",
+      "request": "launch",
+      "program": "${workspaceFolder}/mobile/lib/main.dart",
+      "cwd": "${workspaceFolder}/mobile",
+      "deviceId": "chrome",
+      "toolArgs": [
+        "--dart-define=API_BASE_URL=http://127.0.0.1:18001/api/v1",
+        "--web-port=5003"
+      ],
+      "preLaunchTask": "AtivoTI: banco e API Docker"
+    },
+    {
+      "name": "AtivoTI: Flutter Android",
+      "type": "dart",
+      "request": "launch",
+      "program": "${workspaceFolder}/mobile/lib/main.dart",
+      "cwd": "${workspaceFolder}/mobile",
+      "toolArgs": [
+        "--dart-define=API_BASE_URL=http://10.0.2.2:18001/api/v1"
+      ],
+      "preLaunchTask": "AtivoTI: banco e API Docker"
+    }
+  ]
+}
